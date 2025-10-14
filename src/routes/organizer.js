@@ -9,7 +9,8 @@ router.get('/dashboard', requireRole('organizer'), async (req, res, next) => {
     const organizerId = req.session.user._id;
     const events = await Event.find({ organizerId }).sort({ createdAt: -1 });
     const eventIds = events.map(e => e._id);
-    const orders = await Order.find({ eventId: { $in: eventIds }, paymentStatus: 'paid' });
+    const orders = await Order.find({ eventId: { $in: eventIds }, paymentStatus: 'paid' })
+      .populate('attendeeId', 'name email');
     const totals = orders.reduce((acc, o) => acc + o.amount, 0);
     res.render('organizer/dashboard', { events, totals, orders });
   } catch (e) { next(e); }

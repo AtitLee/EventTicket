@@ -1,0 +1,146 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>My Profile</h1>
+  <p class="muted">Welcome back, <%= user.name %>!</p>
+</section>
+
+<% if (typeof query !== 'undefined' && query.updated === 'true') { %>
+<div class="card" style="background: #064e3b; border-color: #065f46; margin-bottom: 16px;">
+  <p style="color: #10b981; margin: 0;">✓ Profile updated successfully!</p>
+</div>
+<% } %>
+
+<div class="grid-2">
+  <!-- User Information Card -->
+  <div class="card">
+    <h3>Account Information</h3>
+    <div class="profile-info">
+      <div class="info-row">
+        <strong>Name:</strong>
+        <span><%= user.name %></span>
+      </div>
+      <div class="info-row">
+        <strong>Email:</strong>
+        <span><%= user.email %></span>
+      </div>
+      <div class="info-row">
+        <strong>Role:</strong>
+        <span class="chip"><%= user.role %></span>
+      </div>
+    </div>
+    
+    <div class="form-actions" style="margin-top: 16px;">
+      <a class="btn btn-outline" href="/profile/edit">Edit Profile</a>
+    </div>
+  </div>
+
+  <!-- Quick Stats Card -->
+  <div class="card">
+    <h3>Quick Stats</h3>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number"><%= totalOrders %></div>
+        <div class="muted">Total Tickets</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number"><%= upcomingEvents.length %></div>
+        <div class="muted">Upcoming Events</div>
+      </div>
+    </div>
+    
+    <div class="form-actions" style="margin-top: 16px;">
+      <a class="btn" href="/profile/tickets">View All Tickets</a>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders -->
+<% if (orders && orders.length > 0) { %>
+<div class="card">
+  <h3>Recent Tickets</h3>
+  <div class="vstack" style="display:flex; flex-direction:column; gap:12px;">
+    <% orders.slice(0, 3).forEach(o => { %>
+      <% o.items.forEach(it => { %>
+        <div class="ticket-card">
+          <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
+          <div class="meta">
+            <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
+            <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
+            <div>🎟️ <strong><%= it.name %></strong> × <%= it.qty %></div>
+            <div class="muted">
+              <% if (new Date(o.eventId.startAt) > new Date()) { %>
+                <span style="color: #22d3ee;">Upcoming</span>
+              <% } else { %>
+                <span style="color: #a1a1aa;">Past Event</span>
+              <% } %>
+            </div>
+          </div>
+          <div class="price">฿<%= it.unitPrice * it.qty %></div>
+        </div>
+      <% }) %>
+    <% }) %>
+  </div>
+  
+  <% if (orders.length > 3) { %>
+    <div style="text-align: center; margin-top: 16px;">
+      <a class="btn btn-outline" href="/profile/tickets">View All Tickets</a>
+    </div>
+  <% } %>
+</div>
+<% } else { %>
+<div class="card center">
+  <h3>No Tickets Yet</h3>
+  <p class="muted">You haven't purchased any tickets yet.</p>
+  <a class="btn" href="/events">Browse Events</a>
+</div>
+<% } %>
+
+<style>
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #1f2937;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  text-align: center;
+}
+
+.stat-item {
+  padding: 16px;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

@@ -30,7 +30,18 @@ router.get('/events/:id', async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).render('errors/404');
-    res.render('events/detail', { event });
+    
+    // If user is organizer of this event, fetch orders with buyer info
+    let orders = [];
+    if (req.session.user && 
+        req.session.user.role === 'organizer' && 
+        event.organizerId.toString() === req.session.user._id.toString()) {
+      orders = await Order.find({ eventId: event._id, paymentStatus: 'paid' })
+        .populate('attendeeId', 'name email')
+        .sort({ createdAt: -1 });
+    }
+    
+    res.render('events/detail', { event, orders });
   } catch (e) { next(e); }
 });
 

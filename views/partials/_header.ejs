@@ -1,11 +1,14 @@
 <header class="header glass">
-  <a href="/" class="brand">EventHub</a>
-  <nav>
-    <a href="/events">Events</a>
-    <% if (role === 'organizer') { %><a href="/organizer/dashboard">Organizer</a><% } %>
-  </nav>
+  <div class="header-left">
+    <a href="/" class="brand">EventHub</a>
+    <nav>
+      <a href="/events">Events</a>
+      <% if (role === 'organizer') { %><a href="/organizer/dashboard">Organizer</a><% } %>
+    </nav>
+  </div>
   <div class="auth">
     <% if (currentUser) { %>
+      <a href="/profile">Profile</a>
       <span class="chip">Hi, <%= currentUser.name %> • <%= currentUser.role %></span>
       <form action="/auth/logout" method="POST" class="inline">
         <button class="btn btn-outline" type="submit">Logout</button>
@@ -16,3 +19,27 @@
     <% } %>
   </div>
 </header>
+
+<style>
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+</style>

@@ -1,0 +1,56 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Edit Profile</h1>
+  <p class="muted">Update your account information</p>
+</section>
+
+<div style="max-width: 600px; margin: 0 auto;">
+  <form action="/profile/edit" method="POST" class="form form-card">
+    <div class="input-group">
+      <label>Name</label>
+      <input type="text" name="name" value="<%= user.name %>" required/>
+    </div>
+    
+    <div class="input-group">
+      <label>Email</label>
+      <input type="email" value="<%= user.email %>" disabled style="opacity: 0.6; cursor: not-allowed;"/>
+      <small class="muted">Email cannot be changed</small>
+    </div>
+    
+    <div class="input-group">
+      <label>Role</label>
+      <input type="text" value="<%= user.role %>" disabled style="opacity: 0.6; cursor: not-allowed;"/>
+      <small class="muted">Role cannot be changed</small>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Save Changes</button>
+      <a class="btn btn-outline" href="/profile">Cancel</a>
+    </div>
+  </form>
+
+  <div class="card" style="margin-top: 24px; background: #0f172a;">
+    <h3>Change Password</h3>
+    <p class="muted">For security reasons, password changes are not implemented yet.</p>
+    <p class="muted">Contact support if you need to reset your password.</p>
+  </div>
+</div>
+
+<style>
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+small.muted {
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .form-actions {
+    flex-direction: column;
+  }
+}
+</style>
