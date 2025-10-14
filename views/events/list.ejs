@@ -15,13 +15,144 @@
 
 <div class="grid">
   <% events.forEach(e => { %>
-    <a class="card hover" href="/events/<%= e._id %>">
+    <a class="card hover event-card" href="/events/<%= e._id %>" data-start="<%= new Date(e.startAt).getTime() %>">
       <img src="<%= e.coverImage || 'https://placehold.co/600x300?text=Event' %>" alt="cover"/>
       <div class="card-body">
         <h3><%= e.title %></h3>
         <p class="muted"><%= new Date(e.startAt).toLocaleString() %> @ <%= e.venue %></p>
+        <div class="countdown" data-event-id="<%= e._id %>">
+          <% 
+            const now = new Date();
+            const start = new Date(e.startAt);
+            const diff = start - now;
+          %>
+          <% if (diff > 0) { %>
+            <span class="countdown-badge">⏰ Starting in <span class="countdown-text"></span></span>
+          <% } else if (diff > -86400000) { %>
+            <span class="countdown-badge live">🔴 Event Started</span>
+          <% } else { %>
+            <span class="countdown-badge ended">Ended</span>
+          <% } %>
+        </div>
         <p class="price"><%= (e.ticketTypes[0] && e.ticketTypes[0].price !== undefined) ? ('from ฿' + e.ticketTypes[0].price) : '' %></p>
       </div>
     </a>
   <% }) %>
 </div>
+
+<script>
+function updateCountdowns() {
+  const now = Date.now();
+  
+  document.querySelectorAll('.event-card').forEach(card => {
+    const startTime = parseInt(card.dataset.start);
+    const diff = startTime - now;
+    const countdownText = card.querySelector('.countdown-text');
+    const countdownBadge = card.querySelector('.countdown-badge');
+    
+    if (!countdownBadge) return;
+    
+    if (diff > 0) {
+      // Calculate time units
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      // Format countdown text
+      let timeText = '';
+      if (days > 0) {
+        timeText = `${days}d ${hours}h`;
+      } else if (hours > 0) {
+        timeText = `${hours}h ${minutes}m`;
+      } else if (minutes > 0) {
+        timeText = `${minutes}m ${seconds}s`;
+      } else {
+        timeText = `${seconds}s`;
+      }
+      
+      if (countdownText) {
+        countdownText.textContent = timeText;
+      }
+      
+      // Update badge style based on urgency
+      countdownBadge.className = 'countdown-badge';
+      if (diff < 3600000) { // Less than 1 hour
+        countdownBadge.classList.add('urgent');
+      } else if (diff < 86400000) { // Less than 1 day
+        countdownBadge.classList.add('soon');
+      }
+    } else if (diff > -86400000) {
+      // Event started (within last 24 hours)
+      countdownBadge.className = 'countdown-badge live';
+      countdownBadge.innerHTML = '🔴 Event Started';
+    } else {
+      // Event ended
+      countdownBadge.className = 'countdown-badge ended';
+      countdownBadge.textContent = 'Ended';
+    }
+  });
+}
+
+// Update every second
+updateCountdowns();
+setInterval(updateCountdowns, 1000);
+</script>
+
+<style>
+.countdown {
+  margin: 8px 0;
+}
+
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #22d3ee;
+}
+
+.countdown-badge.soon {
+  background: #422006;
+  border-color: #92400e;
+  color: #fbbf24;
+}
+
+.countdown-badge.urgent {
+  background: #450a0a;
+  border-color: #991b1b;
+  color: #fca5a5;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.countdown-badge.live {
+  background: #052e16;
+  border-color: #166534;
+  color: #4ade80;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.countdown-badge.ended {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.countdown-text {
+  font-weight: 700;
+}
+</style>
