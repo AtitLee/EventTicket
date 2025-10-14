@@ -54,19 +54,36 @@ router.get('/tickets', requireAuth, async (req, res, next) => {
   try {
     const orders = await Order.find({ attendeeId: req.session.user._id, paymentStatus: 'paid' }).populate('eventId');
     
-    // Generate QR codes for each order
+    // Generate QR codes for each individual ticket
     const ordersWithQR = await Promise.all(orders.map(async (order) => {
-      if (order.ticketCode) {
+      const orderObj = order.toObject();
+      
+      // If order has individual tickets, generate QR for each
+      if (orderObj.tickets && orderObj.tickets.length > 0) {
+        orderObj.ticketsWithQR = await Promise.all(orderObj.tickets.map(async (ticket) => {
+          const qrData = JSON.stringify({
+            ticketId: ticket._id,
+            ticketCode: ticket.ticketCode,
+            orderId: order._id,
+            eventId: order.eventId._id,
+            attendeeId: order.attendeeId,
+            ticketType: ticket.name
+          });
+          const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
+          return { ...ticket, qrCodeDataURL };
+        }));
+      } else if (orderObj.ticketCode) {
+        // Fallback for old orders without individual tickets
         const qrData = JSON.stringify({
           orderId: order._id,
-          ticketCode: order.ticketCode,
+          ticketCode: orderObj.ticketCode,
           eventId: order.eventId._id,
           attendeeId: order.attendeeId
         });
-        const qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
-        return { ...order.toObject(), qrCodeDataURL };
+        orderObj.qrCodeDataURL = await QRCode.toDataURL(qrData, { width: 200, margin: 1 });
       }
-      return order.toObject();
+      
+      return orderObj;
     }));
     
     res.render('profile/tickets', { orders: ordersWithQR });

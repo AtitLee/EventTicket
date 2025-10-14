@@ -3,7 +3,10 @@
     <a href="/" class="brand">EventHub</a>
     <nav>
       <a href="/events">Events</a>
-      <% if (role === 'organizer') { %><a href="/organizer/dashboard">Organizer</a><% } %>
+      <% if (role === 'organizer') { %>
+        <a href="/organizer/dashboard">Organizer</a>
+        <a href="/organizer/verify">Verify Ticket</a>
+      <% } %>
     </nav>
   </div>
   <div class="auth">
