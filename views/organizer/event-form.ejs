@@ -1,0 +1,48 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1><%= event ? 'Edit' : 'Create' %> Event</h1>
+  <p class="muted">Fill in event details and ticket types</p>
+</section>
+
+<form method="POST" action="<%= event ? ('/organizer/events/' + event._id) : '/organizer/events' %>" class="form form-card">
+  <div class="grid-2">
+    <div class="input-group"><label>Title</label><input name="title" value="<%= event ? event.title : '' %>" required/></div>
+    <div class="input-group"><label>Venue</label><input name="venue" value="<%= event ? event.venue : '' %>" required/></div>
+  </div>
+  <div class="grid-2">
+    <div class="input-group"><label>Start At</label><input type="datetime-local" name="startAt" value="<%= event ? (new Date(event.startAt).toISOString().slice(0,16)) : '' %>" required/></div>
+    <div class="input-group"><label>End At</label><input type="datetime-local" name="endAt" value="<%= event ? (new Date(event.endAt).toISOString().slice(0,16)) : '' %>" required/></div>
+  </div>
+  <div class="input-group"><label>Location (optional)</label><input name="location" value="<%= event ? event.location : '' %>"/></div>
+  <div class="input-group"><label>Cover Image URL</label><input name="coverImage" value="<%= event ? event.coverImage : '' %>"/></div>
+  <div class="input-group"><label>Description</label><textarea name="description" rows="4" required><%= event ? event.description : '' %></textarea></div>
+
+  <fieldset>
+    <legend>Ticket Types</legend>
+    <p class="muted">เพิ่มประเภทตั๋วได้หลายแบบ เช่น Early Bird, Regular, VIP</p>
+    <div id="tickets" class="ticket-grid">
+      <%
+        const rows = (event && event.ticketTypes && event.ticketTypes.length)
+          ? event.ticketTypes
+          : [{ name: 'General', price: 0, qtyTotal: 0 }];
+        rows.forEach(function(t){ %>
+          <div class="ticket-row card">
+            <div class="grid-3">
+              <div class="input-group"><label>Ticket name</label><input name="ticketName" placeholder="e.g., Regular" value="<%= t.name %>"/></div>
+              <div class="input-group" data-unit="THB"><label>Price</label><input name="ticketPrice" placeholder="0" type="number" step="1" value="<%= t.price %>"/></div>
+              <div class="input-group" data-unit="tickets"><label>Qty total</label><input name="ticketQty" placeholder="0" type="number" step="1" value="<%= t.qtyTotal %>"/></div>
+            </div>
+            <button type="button" class="btn btn-outline removeTicket">Remove</button>
+          </div>
+      <% }) %>
+    </div>
+    <button type="button" id="addTicket" class="btn">+ Add ticket type</button>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="btn btn-outline" href="/organizer/events">Cancel</a>
+  </div>
+</form>
+
+<script src="/js/event-form.js" defer></script>

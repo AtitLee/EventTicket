@@ -1,0 +1,18 @@
+<header class="header glass">
+  <a href="/" class="brand">EventHub</a>
+  <nav>
+    <a href="/events">Events</a>
+    <% if (role === 'organizer') { %><a href="/organizer/dashboard">Organizer</a><% } %>
+  </nav>
+  <div class="auth">
+    <% if (currentUser) { %>
+      <span class="chip">Hi, <%= currentUser.name %> • <%= currentUser.role %></span>
+      <form action="/auth/logout" method="POST" class="inline">
+        <button class="btn btn-outline" type="submit">Logout</button>
+      </form>
+    <% } else { %>
+      <a class="btn btn-outline" href="/auth/login">Login</a>
+      <a class="btn" href="/auth/register">Register</a>
+    <% } %>
+  </div>
+</header>

@@ -1,0 +1,19 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Orders — <%= event.title %></h1>
+</section>
+
+<div class="card">
+  <table class="table">
+    <tr><th>Order</th><th>Buyer</th><th>Amount</th><th>Status</th><th>Created</th></tr>
+    <% orders.forEach(o => { %>
+      <tr>
+        <td><%= o._id %></td>
+        <td><%= o.attendeeId ? (o.attendeeId.name + ' (' + o.attendeeId.email + ')') : '-' %></td>
+        <td class="price">฿<%= o.amount %></td>
+        <td><%= o.paymentStatus %></td>
+        <td><%= new Date(o.createdAt).toLocaleString() %></td>
+      </tr>
+    <% }) %>
+  </table>
+</div>

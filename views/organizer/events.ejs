@@ -1,0 +1,20 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>My Events</h1>
+  <a class="btn" href="/organizer/events/new">Create new</a>
+</section>
+
+<ul class="list">
+  <% events.forEach(e => { %>
+    <li class="list-item">
+      <div>
+        <strong><a href="/events/<%= e._id %>"><%= e.title %></a></strong>
+        <div class="muted"><%= new Date(e.startAt).toLocaleString() %> @ <%= e.venue %></div>
+      </div>
+      <div class="actions">
+        <a class="btn btn-small" href="/organizer/events/<%= e._id %>/edit">Edit</a>
+        <a class="btn btn-small btn-outline" href="/organizer/events/<%= e._id %>/orders">Orders</a>
+      </div>
+    </li>
+  <% }) %>
+</ul>

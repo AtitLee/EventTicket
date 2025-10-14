@@ -1,0 +1,39 @@
+<% layout('layout') -%>
+<article class="event-detail">
+  <img class="cover" src="<%= event.coverImage || 'https://placehold.co/1200x400?text=Event' %>"/>
+  <div class="card">
+    <h2><%= event.title %></h2>
+    <p class="muted"><strong>When:</strong> <%= new Date(event.startAt).toLocaleString() %> - <%= new Date(event.endAt).toLocaleString() %></p>
+    <p class="muted"><strong>Where:</strong> <%= event.venue %> <%= event.location ? '('+event.location+')' : '' %></p>
+    <p><%= event.description %></p>
+  </div>
+
+  <div class="card">
+    <h3>Tickets</h3>
+    <% if (event.ticketTypes.length === 0) { %>
+      <p>No tickets configured.</p>
+    <% } else { %>
+      <form action="/events/<%= event._id %>/checkout" method="POST" class="form">
+        <div class="grid-2">
+          <div class="input-group">
+            <label>Type</label>
+            <select name="ticketTypeId">
+              <% event.ticketTypes.forEach(tt => { %>
+                <option value="<%= tt._id %>"><%= tt.name %> — ฿<%= tt.price %> | left: <%= (tt.qtyTotal-tt.qtySold) %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Qty</label>
+            <input type="number" min="1" name="qty" value="1"/>
+          </div>
+        </div>
+        <button class="btn" type="submit">Buy Ticket</button>
+      </form>
+    <% } %>
+
+    <% if (typeof error !== 'undefined') { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+  </div>
+</article>

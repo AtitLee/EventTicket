@@ -1,0 +1,14 @@
+<% layout('layout') -%>
+<div class="card center">
+  <h2>Payment Successful</h2>
+  <div class="ticket-card" style="margin:12px 0 10px">
+    <img class="thumb" src="<%= event.coverImage || 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
+    <div class="meta">
+      <div class="title"><a href="/events/<%= event._id %>"><%= event.title %></a></div>
+      <div class="muted"><%= new Date(event.startAt).toLocaleString() %> @ <%= event.venue %></div>
+      <div class="muted">Order: <%= order._id %></div>
+    </div>
+    <div class="price">฿<%= order.amount %></div>
+  </div>
+  <a class="btn" href="/profile/tickets">View my tickets</a>
+</div>

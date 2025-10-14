@@ -1,0 +1,17 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Welcome back</h1>
+  <p class="muted">Sign in to continue</p>
+</section>
+
+<form action="/auth/login" method="POST" class="form form-card">
+  <div class="grid-2">
+    <div class="input-group"><label>Email</label><input type="email" name="email" required/></div>
+    <div class="input-group"><label>Password</label><input type="password" name="password" required/></div>
+  </div>
+  <button class="btn" type="submit">Login</button>
+
+  <% if (typeof errors !== 'undefined') { %>
+  <ul class="error-list"><% errors.forEach(e => { %><li><%= e.msg %></li><% }) %></ul>
+  <% } %>
+</form>

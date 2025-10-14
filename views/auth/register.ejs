@@ -1,0 +1,24 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Create your account</h1>
+  <p class="muted">Join as an attendee or organizer</p>
+</section>
+
+<form action="/auth/register" method="POST" class="form form-card">
+  <div class="grid-2">
+    <div class="input-group"><label>Name</label><input type="text" name="name" required/></div>
+    <div class="input-group"><label>Email</label><input type="email" name="email" required/></div>
+  </div>
+  <div class="grid-2">
+    <div class="input-group"><label>Password (min 6)</label><input type="password" name="password" required/></div>
+    <div class="input-group">
+      <label>Role</label>
+      <select name="role"><option value="attendee">Attendee</option><option value="organizer">Organizer</option></select>
+    </div>
+  </div>
+  <button class="btn" type="submit">Create Account</button>
+
+  <% if (typeof errors !== 'undefined') { %>
+  <ul class="error-list"><% errors.forEach(e => { %><li><%= e.msg %></li><% }) %></ul>
+  <% } %>
+</form>

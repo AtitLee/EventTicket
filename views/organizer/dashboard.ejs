@@ -1,0 +1,35 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Organizer Dashboard</h1>
+  <p class="muted">Overview of your events and sales</p>
+  <a class="btn" href="/organizer/events/new">Create new event</a>
+</section>
+
+<div class="card">
+  <h3>Total revenue</h3>
+  <p class="price">฿<%= totals %></p>
+</div>
+
+<div class="card">
+  <h3>My Events</h3>
+  <table class="table">
+    <tr><th>Title</th><th>When</th><th>Sold/Total</th><th>Actions</th></tr>
+    <% events.forEach(e => { 
+      const sold = e.ticketTypes.reduce((a,t)=>a+t.qtySold,0);
+      const total = e.ticketTypes.reduce((a,t)=>a+t.qtyTotal,0);
+    %>
+    <tr>
+      <td><a href="/events/<%= e._id %>"><%= e.title %></a></td>
+      <td><%= new Date(e.startAt).toLocaleString() %></td>
+      <td><%= sold %>/<%= total %></td>
+      <td class="actions">
+        <a class="btn btn-small" href="/organizer/events/<%= e._id %>/edit">Edit</a>
+        <a class="btn btn-small btn-outline" href="/organizer/events/<%= e._id %>/orders">Orders</a>
+        <form action="/organizer/events/<%= e._id %>/delete" method="POST" class="inline">
+          <button class="btn btn-small btn-danger" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </table>
+</div>

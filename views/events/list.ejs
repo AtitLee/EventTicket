@@ -1,0 +1,27 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Discover Events</h1>
+  <p class="muted">Find meetups, workshops, and concerts</p>
+</section>
+
+<form method="GET" class="filters card">
+  <input name="search" placeholder="Search by title…" value="<%= query.search || '' %>"/>
+  <input type="date" name="dateFrom" value="<%= query.dateFrom || '' %>"/>
+  <input type="date" name="dateTo" value="<%= query.dateTo || '' %>"/>
+  <input type="number" name="priceMin" placeholder="Min price" value="<%= query.priceMin || '' %>"/>
+  <input type="number" name="priceMax" placeholder="Max price" value="<%= query.priceMax || '' %>"/>
+  <button class="btn" type="submit">Filter</button>
+</form>
+
+<div class="grid">
+  <% events.forEach(e => { %>
+    <a class="card hover" href="/events/<%= e._id %>">
+      <img src="<%= e.coverImage || 'https://placehold.co/600x300?text=Event' %>" alt="cover"/>
+      <div class="card-body">
+        <h3><%= e.title %></h3>
+        <p class="muted"><%= new Date(e.startAt).toLocaleString() %> @ <%= e.venue %></p>
+        <p class="price"><%= (e.ticketTypes[0] && e.ticketTypes[0].price !== undefined) ? ('from ฿' + e.ticketTypes[0].price) : '' %></p>
+      </div>
+    </a>
+  <% }) %>
+</div>
