@@ -1,0 +1,23 @@
+<% layout('layout') -%>
+<article class="event-detail">
+  <img class="cover" src="<%= event.coverImage || 'https://placehold.co/1200x400?text=Event' %>"/>
+  <div class="card">
+    <h2><%= event.title %></h2>
+    <p class="muted"><strong>When:</strong> <%= new Date(event.startAt).toLocaleString() %> - <%= new Date(event.endAt).toLocaleString() %></p>
+    <p class="muted"><strong>Where:</strong> <%= event.venue %> <%= event.location ? '('+event.location+')' : '' %></p>
+    <p><%= event.description %></p>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h3 style="margin-bottom:18px;">PromptPay QR สำหรับชำระเงิน</h3>
+    <% if (qr) { %>
+      <div style="display:flex;justify-content:center;align-items:center;flex-direction:column;">
+        <img src="<%= qr %>" style="width:320px;height:320px;max-width:90vw;border-radius:12px;box-shadow:0 0 16px #0002;margin-bottom:16px;"/>
+        <div class="muted" style="margin-bottom:16px;font-size:1.1rem;">PromptPay: <b><%= phone %></b> | จำนวนเงิน: <b>฿<%= amount %></b></div>
+        <a class="btn" href="/events/<%= event._id %>">กลับไปหน้าอีเวนต์</a>
+      </div>
+    <% } else { %>
+      <p class="error">ไม่สามารถสร้าง QR Code ได้</p>
+    <% } %>
+  </div>
+</article>

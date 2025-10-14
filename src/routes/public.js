@@ -3,6 +3,8 @@ const router = express.Router();
 const Event = require('../models/Event');
 const Order = require('../models/Order');
 const { requireAuth } = require('../middlewares/auth');
+const QRCode = require('qrcode');
+const { generatePromptPayPayload } = require('../utils/promptpay');
 
 router.get('/', (req, res) => res.redirect('/events'));
 
@@ -45,6 +47,42 @@ router.get('/events/:id', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+    // Payment page: show QR code for selected ticket type and qty
+    router.get('/events/:id/pay', async (req, res, next) => {
+      try {
+        const event = await Event.findById(req.params.id);
+        if (!event) return res.status(404).render('errors/404');
+        const { ticketTypeId, qty } = req.query;
+        const t = event.ticketTypes.id(ticketTypeId);
+        const q = Math.max(1, parseInt(qty || '1', 10));
+        if (!t) return res.status(400).render('events/pay', { event, qr: null, amount: 0, phone: '0902748581' });
+        const amount = t.price * q;
+        const phone = '0902748581';
+        const payload = generatePromptPayPayload(phone, amount);
+        const qrDataUrl = await QRCode.toDataURL(payload);
+        res.render('events/pay', { event, qr: qrDataUrl, amount, phone });
+      } catch (e) { next(e); }
+    });
+
+    // QR Code for PromptPay payment
+    router.get('/events/:id/qrcode', async (req, res, next) => {
+      try {
+        const event = await Event.findById(req.params.id);
+        if (!event) return res.status(404).send('Event not found');
+        // Use first ticket type price or query param
+        let amount = 0;
+        if (event.ticketTypes && event.ticketTypes.length > 0) {
+          amount = event.ticketTypes[0].price;
+        }
+        if (req.query.amount) {
+          amount = Number(req.query.amount);
+        }
+        const phone = '0902748581';
+        const payload = generatePromptPayPayload(phone, amount);
+        const qrDataUrl = await QRCode.toDataURL(payload);
+        res.json({ qr: qrDataUrl, amount, phone });
+      } catch (e) { next(e); }
+    });
 router.post('/events/:id/checkout', requireAuth, async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);

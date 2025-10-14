@@ -8,6 +8,7 @@
     <p><%= event.description %></p>
   </div>
 
+
   <div class="card">
     <h3>Tickets</h3>
     <% if (event.ticketTypes.length === 0) { %>
@@ -27,7 +28,7 @@
     <% } else { %>
       <!-- Regular user view: Show purchase form -->
       <% if (currentUser) { %>
-        <form action="/events/<%= event._id %>/checkout" method="POST" class="form">
+        <form action="/events/<%= event._id %>/pay" method="GET" class="form">
           <div class="grid-2">
             <div class="input-group">
               <label>Type</label>
@@ -42,7 +43,7 @@
               <input type="number" min="1" name="qty" value="1"/>
             </div>
           </div>
-          <button class="btn" type="submit">Buy Ticket</button>
+          <button class="btn" type="submit">ชำระเงินผ่าน PromptPay</button>
         </form>
       <% } else { %>
         <!-- Not logged in: Show ticket info and login prompt -->

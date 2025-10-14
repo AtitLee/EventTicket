@@ -11,17 +11,172 @@
   <div class="vstack" style="display:flex; flex-direction:column; gap:12px;">
   <% orders.forEach(o => { %>
     <% o.items.forEach(it => { %>
-      <div class="ticket-card">
-        <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
-        <div class="meta">
-          <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
-          <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
-          <div>🎟️ <strong><%= it.name %></strong> × <%= it.qty %></div>
-          <div class="muted">Order: <%= o._id %></div>
+      <div class="ticket-card-full">
+        <div class="ticket-main">
+          <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
+          <div class="meta">
+            <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
+            <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
+            <div>🎟️ <strong><%= it.name %></strong> × <%= it.qty %></div>
+            <div class="muted">Order: <%= o._id %></div>
+            <% if (o.ticketCode) { %>
+              <div class="ticket-code">Code: <strong><%= o.ticketCode %></strong></div>
+            <% } %>
+          </div>
+          <div class="price">฿<%= it.unitPrice * it.qty %></div>
         </div>
-        <div class="price">฿<%= it.unitPrice * it.qty %></div>
+        <% if (o.qrCodeDataURL) { %>
+        <div class="qr-section">
+          <div class="qr-container">
+            <img src="<%= o.qrCodeDataURL %>" alt="Ticket QR Code" class="qr-code"/>
+            <p class="qr-label">Scan to verify</p>
+          </div>
+        </div>
+        <% } %>
       </div>
     <% }) %>
   <% }) %>
   </div>
 </div>
+
+<style>
+.ticket-card-full {
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(145deg, #0c1224, #0f172a);
+  border: 1px dashed #1f2937;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ticket-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.ticket-main .thumb {
+  width: 80px;
+  height: 80px;
+  flex: 0 0 80px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #1f2937;
+}
+
+.ticket-main .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.ticket-main .meta .title {
+  font-weight: 700;
+}
+
+.ticket-main .meta .muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.ticket-code {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+}
+
+.ticket-code strong {
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.ticket-main .price {
+  margin-left: auto;
+  font-weight: 700;
+  align-self: center;
+}
+
+.qr-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: #0f172a;
+  border-left: 1px dashed #1f2937;
+  min-width: 160px;
+}
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.qr-code {
+  width: 120px;
+  height: 120px;
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid #22d3ee;
+}
+
+.qr-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0;
+  text-align: center;
+}
+
+/* Ticket perforation circles */
+.ticket-card-full:before,
+.ticket-card-full:after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--bg);
+  border: 1px solid #1f2937;
+  border-radius: 50%;
+}
+
+.ticket-card-full:before {
+  left: calc(100% - 180px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ticket-card-full:after {
+  right: 172px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 768px) {
+  .ticket-card-full {
+    flex-direction: column;
+  }
+  
+  .qr-section {
+    border-left: none;
+    border-top: 1px dashed #1f2937;
+    padding: 16px;
+  }
+  
+  .ticket-card-full:before,
+  .ticket-card-full:after {
+    display: none;
+  }
+}
+</style>
