@@ -1,0 +1,268 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1>Ticket Verification</h1>
+  <p class="muted">Scan or enter ticket code to verify</p>
+</section>
+
+<% if (typeof query !== 'undefined' && query.success === 'true') { %>
+<div class="card" style="background: #052e16; border-color: #166534; margin-bottom: 16px;">
+  <p style="color: #10b981; margin: 0; text-align: center;">✓ Ticket marked as used successfully!</p>
+</div>
+<% } %>
+
+<div class="verify-container">
+  <!-- Manual Input Form -->
+  <div class="card">
+    <h3>Enter Ticket Code</h3>
+    <form action="/organizer/verify" method="POST" class="form">
+      <div class="input-group">
+        <label>Ticket Code</label>
+        <input 
+          type="text" 
+          name="ticketCode" 
+          id="ticketCodeInput"
+          placeholder="Enter 32-character code" 
+          required
+          style="font-family: 'Courier New', monospace; text-transform: uppercase;"
+          maxlength="32"
+        />
+      </div>
+      <button class="btn" type="submit">Verify Ticket</button>
+    </form>
+  </div>
+
+  <!-- QR Scanner -->
+  <div class="card">
+    <h3>Scan QR Code</h3>
+    <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+    <p class="muted" style="text-align: center; margin-top: 12px;">
+      Allow camera access to scan QR codes
+    </p>
+  </div>
+
+  <!-- Verification Result -->
+  <% if (error) { %>
+  <div class="card" style="background: #450a0a; border-color: #991b1b;">
+    <div class="result-error">
+      <div class="result-icon">❌</div>
+      <h3>Invalid Ticket</h3>
+      <p><%= error %></p>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (ticket && ticket.isValid) { %>
+  <div class="card" style="background: #052e16; border-color: #166534;">
+    <div class="result-success">
+      <div class="result-icon">✅</div>
+      <h3>Valid Ticket</h3>
+      
+      <div class="ticket-details">
+        <div class="detail-row">
+          <strong>Event:</strong>
+          <span><%= ticket.eventId.title %></span>
+        </div>
+        <div class="detail-row">
+          <strong>Attendee:</strong>
+          <span><%= ticket.attendeeId.name %> (<%= ticket.attendeeId.email %>)</span>
+        </div>
+        <% if (ticket.isIndividual) { %>
+          <div class="detail-row">
+            <strong>Ticket Type:</strong>
+            <span><%= ticket.name %></span>
+          </div>
+          <div class="detail-row">
+            <strong>Price:</strong>
+            <span class="price">฿<%= ticket.unitPrice %></span>
+          </div>
+          <% if (ticket.usedAt) { %>
+          <div class="detail-row">
+            <strong>Used At:</strong>
+            <span style="color: #fbbf24;"><%= new Date(ticket.usedAt).toLocaleString() %></span>
+          </div>
+          <% } %>
+        <% } else { %>
+          <div class="detail-row">
+            <strong>Ticket Type:</strong>
+            <span>
+              <% ticket.items.forEach((it, idx) => { %>
+                <%= it.name %> × <%= it.qty %><%= idx < ticket.items.length - 1 ? ', ' : '' %>
+              <% }) %>
+            </span>
+          </div>
+          <div class="detail-row">
+            <strong>Amount:</strong>
+            <span class="price">฿<%= ticket.amount %></span>
+          </div>
+        <% } %>
+        <div class="detail-row">
+          <strong>Purchase Date:</strong>
+          <span><%= new Date(ticket.createdAt).toLocaleString() %></span>
+        </div>
+        <div class="detail-row">
+          <strong>Event Date:</strong>
+          <span><%= new Date(ticket.eventId.startAt).toLocaleString() %></span>
+        </div>
+        <div class="detail-row">
+          <strong>Status:</strong>
+          <span>
+            <% if (ticket.eventPassed) { %>
+              <span style="color: #64748b;">Event Ended</span>
+            <% } else if (ticket.usedAt) { %>
+              <span style="color: #fbbf24;">Already Used</span>
+            <% } else { %>
+              <span style="color: #4ade80;">Active</span>
+            <% } %>
+          </span>
+        </div>
+      </div>
+      
+      <% if (ticket.isIndividual && !ticket.usedAt && !ticket.eventPassed) { %>
+        <form action="/organizer/verify/use" method="POST" style="margin-top: 20px;">
+          <input type="hidden" name="ticketId" value="<%= ticket._id %>">
+          <input type="hidden" name="orderId" value="<%= ticket.orderId %>">
+          <button class="btn" type="submit">Mark as Used</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let html5QrCode;
+
+function onScanSuccess(decodedText, decodedResult) {
+  try {
+    // Try to parse as JSON (our QR format)
+    const data = JSON.parse(decodedText);
+    if (data.ticketCode) {
+      document.getElementById('ticketCodeInput').value = data.ticketCode;
+      document.querySelector('form').submit();
+    }
+  } catch (e) {
+    // If not JSON, treat as plain ticket code
+    document.getElementById('ticketCodeInput').value = decodedText;
+    document.querySelector('form').submit();
+  }
+}
+
+function onScanError(errorMessage) {
+  // Ignore scan errors (too noisy)
+}
+
+// Initialize QR scanner
+const qrReader = document.getElementById('qr-reader');
+if (qrReader) {
+  html5QrCode = new Html5Qrcode("qr-reader");
+  
+  // Start scanning
+  Html5Qrcode.getCameras().then(cameras => {
+    if (cameras && cameras.length) {
+      const cameraId = cameras[cameras.length - 1].id; // Use back camera
+      html5QrCode.start(
+        cameraId,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        onScanSuccess,
+        onScanError
+      ).catch(err => {
+        console.error('Unable to start scanning', err);
+      });
+    }
+  }).catch(err => {
+    console.error('Unable to get cameras', err);
+  });
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(err => console.error(err));
+  }
+});
+</script>
+
+<style>
+.verify-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.result-success,
+.result-error {
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.result-success h3 {
+  color: #4ade80;
+  margin: 0 0 20px 0;
+}
+
+.result-error h3 {
+  color: #fca5a5;
+  margin: 0 0 12px 0;
+}
+
+.result-error p {
+  color: #fca5a5;
+  margin: 0;
+}
+
+.ticket-details {
+  text-align: left;
+  margin-top: 20px;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #1f2937;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row strong {
+  color: var(--muted);
+}
+
+.detail-row span {
+  color: var(--txt);
+  text-align: right;
+}
+
+#qr-reader {
+  border: 2px solid #1f2937;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .detail-row span {
+    text-align: left;
+  }
+}
+</style>

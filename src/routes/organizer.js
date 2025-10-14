@@ -73,4 +73,125 @@ router.get('/events/:id/orders', requireRole('organizer'), async (req, res, next
   } catch (e) { next(e); }
 });
 
+// Ticket verification page
+router.get('/verify', requireRole('organizer'), (req, res) => {
+  res.render('organizer/verify', { ticket: null, error: null });
+});
+
+// Verify ticket API
+router.post('/verify', requireRole('organizer'), async (req, res, next) => {
+  try {
+    const { ticketCode } = req.body;
+    
+    if (!ticketCode) {
+      return res.render('organizer/verify', { ticket: null, error: 'Please provide a ticket code' });
+    }
+    
+    // First, try to find individual ticket
+    const order = await Order.findOne({ 'tickets.ticketCode': ticketCode.toUpperCase() })
+      .populate('eventId')
+      .populate('attendeeId', 'name email');
+    
+    if (order) {
+      // Find the specific ticket
+      const ticket = order.tickets.find(t => t.ticketCode === ticketCode.toUpperCase());
+      
+      if (!ticket) {
+        return res.render('organizer/verify', { ticket: null, error: 'Ticket not found' });
+      }
+      
+      // Check if organizer owns this event
+      if (order.eventId.organizerId.toString() !== req.session.user._id.toString()) {
+        return res.render('organizer/verify', { ticket: null, error: 'You are not authorized to verify this ticket' });
+      }
+      
+      // Check if event has already passed
+      const eventPassed = new Date(order.eventId.endAt) < new Date();
+      
+      return res.render('organizer/verify', { 
+        ticket: {
+          _id: ticket._id,
+          ticketCode: ticket.ticketCode,
+          name: ticket.name,
+          unitPrice: ticket.unitPrice,
+          usedAt: ticket.usedAt,
+          eventId: order.eventId,
+          attendeeId: order.attendeeId,
+          orderId: order._id,
+          createdAt: order.createdAt,
+          isValid: true,
+          eventPassed,
+          isIndividual: true
+        }, 
+        error: null 
+      });
+    }
+    
+    // Fallback: try to find old format order
+    const oldOrder = await Order.findOne({ ticketCode: ticketCode.toUpperCase() })
+      .populate('eventId')
+      .populate('attendeeId', 'name email');
+    
+    if (!oldOrder) {
+      return res.render('organizer/verify', { ticket: null, error: 'Invalid ticket code' });
+    }
+    
+    // Check if organizer owns this event
+    if (oldOrder.eventId.organizerId.toString() !== req.session.user._id.toString()) {
+      return res.render('organizer/verify', { ticket: null, error: 'You are not authorized to verify this ticket' });
+    }
+    
+    // Check if event has already passed
+    const eventPassed = new Date(oldOrder.eventId.endAt) < new Date();
+    
+    res.render('organizer/verify', { 
+      ticket: {
+        ...oldOrder.toObject(),
+        isValid: true,
+        eventPassed,
+        isIndividual: false
+      }, 
+      error: null 
+    });
+  } catch (e) { next(e); }
+});
+
+// Mark ticket as used
+router.post('/verify/use', requireRole('organizer'), async (req, res, next) => {
+  try {
+    const { ticketId, orderId } = req.body;
+    
+    const order = await Order.findById(orderId)
+      .populate('eventId')
+      .populate('attendeeId', 'name email');
+    
+    if (!order) {
+      return res.render('organizer/verify', { ticket: null, error: 'Order not found' });
+    }
+    
+    // Check if organizer owns this event
+    if (order.eventId.organizerId.toString() !== req.session.user._id.toString()) {
+      return res.render('organizer/verify', { ticket: null, error: 'You are not authorized' });
+    }
+    
+    // Find and update the ticket
+    const ticket = order.tickets.id(ticketId);
+    if (!ticket) {
+      return res.render('organizer/verify', { ticket: null, error: 'Ticket not found' });
+    }
+    
+    if (ticket.usedAt) {
+      return res.render('organizer/verify', { 
+        ticket: null, 
+        error: `Ticket already used at ${new Date(ticket.usedAt).toLocaleString()}` 
+      });
+    }
+    
+    ticket.usedAt = new Date();
+    await order.save();
+    
+    res.redirect('/organizer/verify?success=true');
+  } catch (e) { next(e); }
+});
+
 module.exports = router;

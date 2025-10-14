@@ -10,31 +10,64 @@
 
   <div class="vstack" style="display:flex; flex-direction:column; gap:12px;">
   <% orders.forEach(o => { %>
-    <% o.items.forEach(it => { %>
-      <div class="ticket-card-full">
-        <div class="ticket-main">
-          <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
-          <div class="meta">
-            <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
-            <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
-            <div>🎟️ <strong><%= it.name %></strong> × <%= it.qty %></div>
-            <div class="muted">Order: <%= o._id %></div>
-            <% if (o.ticketCode) { %>
-              <div class="ticket-code">Code: <strong><%= o.ticketCode %></strong></div>
-            <% } %>
+    <% if (o.ticketsWithQR && o.ticketsWithQR.length > 0) { %>
+      <!-- Individual tickets (new format) -->
+      <% o.ticketsWithQR.forEach((ticket, idx) => { %>
+        <div class="ticket-card-full">
+          <div class="ticket-main">
+            <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
+            <div class="meta">
+              <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
+              <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
+              <div>🎟️ <strong><%= ticket.name %></strong> × 1</div>
+              <div class="muted">Ticket #<%= idx + 1 %> of <%= o.ticketsWithQR.length %></div>
+              <% if (ticket.ticketCode) { %>
+                <div class="ticket-code">Code: <strong><%= ticket.ticketCode %></strong></div>
+              <% } %>
+              <% if (ticket.usedAt) { %>
+                <div class="ticket-used">✓ Used: <%= new Date(ticket.usedAt).toLocaleString() %></div>
+              <% } %>
+            </div>
+            <div class="price">฿<%= ticket.unitPrice %></div>
           </div>
-          <div class="price">฿<%= it.unitPrice * it.qty %></div>
-        </div>
-        <% if (o.qrCodeDataURL) { %>
-        <div class="qr-section">
-          <div class="qr-container">
-            <img src="<%= o.qrCodeDataURL %>" alt="Ticket QR Code" class="qr-code"/>
-            <p class="qr-label">Scan to verify</p>
+          <% if (ticket.qrCodeDataURL) { %>
+          <div class="qr-section">
+            <div class="qr-container">
+              <img src="<%= ticket.qrCodeDataURL %>" alt="Ticket QR Code" class="qr-code"/>
+              <p class="qr-label">Scan to verify</p>
+            </div>
           </div>
+          <% } %>
         </div>
-        <% } %>
-      </div>
-    <% }) %>
+      <% }) %>
+    <% } else { %>
+      <!-- Old format: grouped items -->
+      <% o.items.forEach(it => { %>
+        <div class="ticket-card-full">
+          <div class="ticket-main">
+            <img class="thumb" src="<%= (o.eventId && o.eventId.coverImage) ? o.eventId.coverImage : 'https://placehold.co/160x160?text=Event' %>" alt="cover"/>
+            <div class="meta">
+              <div class="title"><a href="/events/<%= o.eventId._id %>"><%= o.eventId.title %></a></div>
+              <div class="muted"><%= new Date(o.eventId.startAt).toLocaleString() %> @ <%= o.eventId.venue %></div>
+              <div>🎟️ <strong><%= it.name %></strong> × <%= it.qty %></div>
+              <div class="muted">Order: <%= o._id %></div>
+              <% if (o.ticketCode) { %>
+                <div class="ticket-code">Code: <strong><%= o.ticketCode %></strong></div>
+              <% } %>
+            </div>
+            <div class="price">฿<%= it.unitPrice * it.qty %></div>
+          </div>
+          <% if (o.qrCodeDataURL) { %>
+          <div class="qr-section">
+            <div class="qr-container">
+              <img src="<%= o.qrCodeDataURL %>" alt="Ticket QR Code" class="qr-code"/>
+              <p class="qr-label">Scan to verify</p>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      <% }) %>
+    <% } %>
   <% }) %>
   </div>
 </div>
@@ -98,6 +131,17 @@
 .ticket-code strong {
   color: var(--accent);
   letter-spacing: 1px;
+}
+
+.ticket-used {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #052e16;
+  border: 1px solid #166534;
+  border-radius: 6px;
+  display: inline-block;
+  font-size: 0.85rem;
+  color: #4ade80;
 }
 
 .ticket-main .price {
