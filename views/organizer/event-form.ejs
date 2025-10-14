@@ -15,6 +15,7 @@
   </div>
   <div class="input-group"><label>Location (optional)</label><input name="location" value="<%= event ? event.location : '' %>"/></div>
   <div class="input-group"><label>Cover Image URL</label><input name="coverImage" value="<%= event ? event.coverImage : '' %>"/></div>
+  <div class="input-group"><label>PromptPay (เบอร์มือถือสำหรับรับเงิน)</label><input name="promptPay" value="<%= event ? event.promptPay : '' %>" placeholder="เช่น 0901234567" required/></div>
   <div class="input-group"><label>Description</label><textarea name="description" rows="4" required><%= event ? event.description : '' %></textarea></div>
 
   <fieldset>

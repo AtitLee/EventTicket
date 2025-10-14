@@ -16,6 +16,7 @@ const EventSchema = new mongoose.Schema({
   venue: { type: String, required: true },
   location: { type: String },
   ticketTypes: { type: [TicketTypeSchema], default: [] },
+  promptPay: { type: String },
   status: { type: String, enum: ['draft', 'published', 'closed'], default: 'published' }
 }, { timestamps: true });
 

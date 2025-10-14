@@ -29,12 +29,12 @@ router.get('/events/new', requireRole('organizer'), (req, res) => {
 
 router.post('/events', requireRole('organizer'), async (req, res, next) => {
   try {
-    const { title, description, coverImage, startAt, endAt, venue, location } = req.body;
+    const { title, description, coverImage, startAt, endAt, venue, location, promptPay } = req.body;
     const names = Array.isArray(req.body.ticketName) ? req.body.ticketName : [req.body.ticketName].filter(Boolean);
     const prices = Array.isArray(req.body.ticketPrice) ? req.body.ticketPrice : [req.body.ticketPrice].filter(Boolean);
     const qtys = Array.isArray(req.body.ticketQty) ? req.body.ticketQty : [req.body.ticketQty].filter(Boolean);
     const ticketTypes = names.map((n,i)=>({ name:n, price:Number(prices[i]||0), qtyTotal:Number(qtys[i]||0) })).filter(t=>t.name);
-    await Event.create({ organizerId: req.session.user._id, title, description, coverImage, startAt, endAt, venue, location, ticketTypes, status:'published' });
+    await Event.create({ organizerId: req.session.user._id, title, description, coverImage, startAt, endAt, venue, location, ticketTypes, promptPay, status:'published' });
     res.redirect('/organizer/events');
   } catch (e) { next(e); }
 });
@@ -49,12 +49,12 @@ router.get('/events/:id/edit', requireRole('organizer'), async (req, res, next) 
 
 router.post('/events/:id', requireRole('organizer'), async (req, res, next) => {
   try {
-    const { title, description, coverImage, startAt, endAt, venue, location } = req.body;
+    const { title, description, coverImage, startAt, endAt, venue, location, promptPay } = req.body;
     const names = Array.isArray(req.body.ticketName) ? req.body.ticketName : [req.body.ticketName].filter(Boolean);
     const prices = Array.isArray(req.body.ticketPrice) ? req.body.ticketPrice : [req.body.ticketPrice].filter(Boolean);
     const qtys = Array.isArray(req.body.ticketQty) ? req.body.ticketQty : [req.body.ticketQty].filter(Boolean);
     const ticketTypes = names.map((n,i)=>({ name:n, price:Number(prices[i]||0), qtyTotal:Number(qtys[i]||0) })).filter(t=>t.name);
-    await Event.updateOne({ _id: req.params.id, organizerId: req.session.user._id }, { $set: { title, description, coverImage, startAt, endAt, venue, location, ticketTypes } });
+    await Event.updateOne({ _id: req.params.id, organizerId: req.session.user._id }, { $set: { title, description, coverImage, startAt, endAt, venue, location, ticketTypes, promptPay } });
     res.redirect('/organizer/events');
   } catch (e) { next(e); }
 });

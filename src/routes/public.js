@@ -50,17 +50,17 @@ router.get('/events/:id', async (req, res, next) => {
     // Payment page: show QR code for selected ticket type and qty
     router.get('/events/:id/pay', async (req, res, next) => {
       try {
-        const event = await Event.findById(req.params.id);
-        if (!event) return res.status(404).render('errors/404');
-        const { ticketTypeId, qty } = req.query;
-        const t = event.ticketTypes.id(ticketTypeId);
-        const q = Math.max(1, parseInt(qty || '1', 10));
-        if (!t) return res.status(400).render('events/pay', { event, qr: null, amount: 0, phone: '0902748581' });
-        const amount = t.price * q;
-        const phone = '0902748581';
-        const payload = generatePromptPayPayload(phone, amount);
-        const qrDataUrl = await QRCode.toDataURL(payload);
-        res.render('events/pay', { event, qr: qrDataUrl, amount, phone });
+  const event = await Event.findById(req.params.id);
+  if (!event) return res.status(404).render('errors/404');
+  const { ticketTypeId, qty } = req.query;
+  const t = event.ticketTypes.id(ticketTypeId);
+  const q = Math.max(1, parseInt(qty || '1', 10));
+  if (!t) return res.status(400).render('events/pay', { event, qr: null, amount: 0, phone: event.promptPay || '' });
+  const amount = t.price * q;
+  const phone = event.promptPay || '0902748581';
+  const payload = generatePromptPayPayload(phone, amount);
+  const qrDataUrl = await QRCode.toDataURL(payload);
+  res.render('events/pay', { event, qr: qrDataUrl, amount, phone });
       } catch (e) { next(e); }
     });
 
