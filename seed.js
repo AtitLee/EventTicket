@@ -21,6 +21,7 @@ const Event = require('./src/models/Event');
       { name: 'General', price: 100, qtyTotal: 100, qtySold: 0 },
       { name: 'VIP', price: 300, qtyTotal: 20, qtySold: 0 }
     ],
+    promptPay: '0812345678',
     status: 'published'
   });
   console.log('Seeded: org@example.com / att@example.com, password: password');
